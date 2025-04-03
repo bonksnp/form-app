@@ -1,8 +1,49 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import supabase from '../lib/supabase';
+
+type WeatherData = {
+  temperature: number;
+  humidity: number;
+  weather_condition: string;
+  weather_description: string;
+  wind_speed: number;
+  weather_timestamp: string;
+  city: string;
+  state: string;
+  zip_code: string;
+};
 
 const Dashboard: NextPage = () => {
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('onboarding_data')
+          .select('temperature, humidity, weather_condition, weather_description, wind_speed, weather_timestamp, city, state, zip_code')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (error) throw error;
+        setWeatherData(data);
+      } catch (err) {
+        console.error('Error fetching user data:', err);
+        setError('Failed to load your weather data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   return (
     <>
       <Head>
@@ -28,10 +69,41 @@ const Dashboard: NextPage = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-blue-50 rounded-lg shadow-md p-6">
-              <h3 className="text-lg font-semibold mb-3">Current Alerts</h3>
-              <p className="text-gray-600">No active alerts in your area.</p>
-            </div>
+            {loading ? (
+              <div className="bg-blue-50 rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold mb-3">Weather Conditions</h3>
+                <p className="text-gray-600">Loading weather data...</p>
+              </div>
+            ) : error ? (
+              <div className="bg-blue-50 rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold mb-3">Weather Conditions</h3>
+                <p className="text-red-500">{error}</p>
+              </div>
+            ) : weatherData ? (
+              <div className="bg-blue-50 rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold mb-3">
+                  Weather in {weatherData.city}, {weatherData.state}
+                </h3>
+                <div className="flex items-center mb-4">
+                  <div className="text-4xl font-bold text-blue-700 mr-3">
+                    {Math.round(weatherData.temperature)}°F
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800 capitalize">{weatherData.weather_description}</p>
+                    <p className="text-gray-600">Humidity: {weatherData.humidity}%</p>
+                    <p className="text-gray-600">Wind: {weatherData.wind_speed} mph</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Last updated: {new Date(weatherData.weather_timestamp).toLocaleString()}
+                </p>
+              </div>
+            ) : (
+              <div className="bg-blue-50 rounded-lg shadow-md p-6">
+                <h3 className="text-lg font-semibold mb-3">Weather Conditions</h3>
+                <p className="text-gray-600">No weather data available.</p>
+              </div>
+            )}
             
             <div className="bg-green-50 rounded-lg shadow-md p-6">
               <h3 className="text-lg font-semibold mb-3">Your Emergency Kit</h3>

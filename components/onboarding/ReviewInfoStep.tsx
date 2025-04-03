@@ -10,6 +10,7 @@ type ReviewInfoStepProps = {
     primaryAddress: string;
     city: string;
     state: string;
+    zipCode: string;
     mobilityNeeds: boolean;
     visionNeeds: boolean;
     hearingNeeds: boolean;
@@ -18,6 +19,12 @@ type ReviewInfoStepProps = {
     communicationNeeds: boolean;
     otherNeeds: string;
     needsDescription: string;
+    temperature?: number;
+    humidity?: number;
+    weather_condition?: string;
+    weather_description?: string;
+    wind_speed?: number;
+    weather_timestamp?: string;
   };
   isSubmitting: boolean;
   error: string;
@@ -42,6 +49,7 @@ const ReviewInfoStep = ({
     primaryAddress, 
     city, 
     state,
+    zipCode,
     mobilityNeeds,
     visionNeeds,
     hearingNeeds,
@@ -49,13 +57,20 @@ const ReviewInfoStep = ({
     cognitiveNeeds,
     communicationNeeds,
     otherNeeds,
-    needsDescription
+    needsDescription,
+    temperature,
+    humidity,
+    weather_condition,
+    weather_description,
+    wind_speed
   } = formData;
 
   const hasSupportNeeds = mobilityNeeds || visionNeeds || hearingNeeds || 
                            medicalNeeds || cognitiveNeeds || communicationNeeds || 
                            (otherNeeds && otherNeeds.length > 0);
   
+  const hasWeatherData = temperature !== undefined;
+
   const renderSupportNeeds = () => {
     if (!hasSupportNeeds) return <p className="themed-text-secondary">No special needs selected</p>;
     
@@ -96,7 +111,20 @@ const ReviewInfoStep = ({
           <p className="themed-text-secondary"><span className="font-medium">Address:</span> {primaryAddress}</p>
           <p className="themed-text-secondary"><span className="font-medium">City:</span> {city}</p>
           <p className="themed-text-secondary"><span className="font-medium">State:</span> {state}</p>
+          <p className="themed-text-secondary"><span className="font-medium">ZIP Code:</span> {zipCode}</p>
         </div>
+        
+        {hasWeatherData && (
+          <>
+            <h3 className="text-lg font-semibold mb-2 themed-text-primary">Local Weather Conditions</h3>
+            <div className="themed-bg-secondary p-4 rounded-lg mb-6">
+              <p className="themed-text-secondary"><span className="font-medium">Current Weather:</span> {weather_description}</p>
+              <p className="themed-text-secondary"><span className="font-medium">Temperature:</span> {temperature}°F</p>
+              <p className="themed-text-secondary"><span className="font-medium">Humidity:</span> {humidity}%</p>
+              <p className="themed-text-secondary"><span className="font-medium">Wind Speed:</span> {wind_speed} mph</p>
+            </div>
+          </>
+        )}
         
         <h3 className="text-lg font-semibold mb-2 themed-text-primary">Support Needs</h3>
         <div className="themed-bg-secondary p-4 rounded-lg">

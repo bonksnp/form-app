@@ -16,6 +16,7 @@ type OnboardingData = {
   primaryAddress: string;
   city: string;
   state: string;
+  zipCode: string;
   hasSupportNeeds: boolean;
   mobilityNeeds: boolean;
   visionNeeds: boolean;
@@ -25,6 +26,13 @@ type OnboardingData = {
   communicationNeeds: boolean;
   otherNeeds: string;
   needsDescription: string;
+  // Weather data
+  temperature?: number;
+  humidity?: number;
+  weather_condition?: string;
+  weather_description?: string;
+  wind_speed?: number;
+  weather_timestamp?: string;
 }
 
 const OnboardingWizard = () => {
@@ -37,6 +45,7 @@ const OnboardingWizard = () => {
     primaryAddress: '',
     city: '',
     state: '',
+    zipCode: '',
     hasSupportNeeds: false,
     mobilityNeeds: false,
     visionNeeds: false,
@@ -80,6 +89,7 @@ const OnboardingWizard = () => {
           primary_address: formData.primaryAddress,
           city: formData.city,
           state: formData.state,
+          zip_code: formData.zipCode,
           mobility_needs: formData.mobilityNeeds,
           vision_needs: formData.visionNeeds,
           hearing_needs: formData.hearingNeeds,
@@ -87,7 +97,14 @@ const OnboardingWizard = () => {
           cognitive_needs: formData.cognitiveNeeds,
           communication_needs: formData.communicationNeeds,
           other_needs: formData.otherNeeds,
-          needs_description: formData.needsDescription
+          needs_description: formData.needsDescription,
+          // Weather data
+          temperature: formData.temperature,
+          humidity: formData.humidity,
+          weather_condition: formData.weather_condition,
+          weather_description: formData.weather_description,
+          wind_speed: formData.wind_speed,
+          weather_timestamp: formData.weather_timestamp
         });
 
       if (error) throw error;

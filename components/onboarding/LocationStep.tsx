@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { useTheme } from '../ThemeContext';
+import { getWeatherByZipCode } from '../../lib/weatherApi';
 
 type LocationStepProps = {
   formData: {
     primaryAddress: string;
     city: string;
     state: string;
+    zipCode: string;
+    temperature?: number;
+    humidity?: number;
+    weather_condition?: string;
+    weather_description?: string;
+    wind_speed?: number;
+    weather_timestamp?: string;
   };
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: string | number | boolean) => void;
   onNext: () => void;
   onBack: () => void;
 };
@@ -16,17 +24,45 @@ const LocationStep = ({ formData, onChange, onNext, onBack }: LocationStepProps)
   const { theme } = useTheme();
   const [useCurrent, setUseCurrent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [weatherLoading, setWeatherLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
-    if (!formData.primaryAddress || !formData.city || !formData.state) {
+    if (!formData.primaryAddress || !formData.city || !formData.state || !formData.zipCode) {
       alert('Please fill out all address fields');
       return;
     }
+
+    // Validate ZIP code format (5 digits)
+    if (!/^\d{5}$/.test(formData.zipCode)) {
+      alert('Please enter a valid 5-digit ZIP code');
+      return;
+    }
     
-    onNext();
+    // Fetch weather data
+    setWeatherLoading(true);
+    
+    try {
+      const weatherData = await getWeatherByZipCode(formData.zipCode);
+      
+      // Update form data with weather info
+      onChange('temperature', weatherData.temperature);
+      onChange('humidity', weatherData.humidity);
+      onChange('weather_condition', weatherData.weather_condition);
+      onChange('weather_description', weatherData.weather_description);
+      onChange('wind_speed', weatherData.wind_speed);
+      onChange('weather_timestamp', weatherData.timestamp);
+      
+      onNext();
+    } catch (error) {
+      console.error('Error fetching weather data:', error);
+      alert('There was an issue fetching weather data. You can still proceed.');
+      onNext();
+    } finally {
+      setWeatherLoading(false);
+    }
   };
 
   const handleUseCurrentLocation = () => {
@@ -42,6 +78,7 @@ const LocationStep = ({ formData, onChange, onNext, onBack }: LocationStepProps)
             onChange('primaryAddress', '123 Main St');
             onChange('city', 'Anytown');
             onChange('state', 'CA');
+            onChange('zipCode', '12345');
             setLoading(false);
           } catch (error) {
             console.error('Error getting address from coordinates:', error);
@@ -93,7 +130,7 @@ const LocationStep = ({ formData, onChange, onNext, onBack }: LocationStepProps)
               />
             </div>
             
-            <div className="flex gap-4 mb-6">
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="flex-1">
                 <label htmlFor="city" className="block themed-text-secondary mb-2">City</label>
                 <input
@@ -105,7 +142,7 @@ const LocationStep = ({ formData, onChange, onNext, onBack }: LocationStepProps)
                 />
               </div>
               
-              <div className="w-1/3">
+              <div className="w-full md:w-1/3">
                 <label htmlFor="state" className="block themed-text-secondary mb-2">State</label>
                 <input
                   type="text"
@@ -117,11 +154,24 @@ const LocationStep = ({ formData, onChange, onNext, onBack }: LocationStepProps)
                   placeholder="CA"
                 />
               </div>
+              
+              <div className="w-full md:w-1/3">
+                <label htmlFor="zipCode" className="block themed-text-secondary mb-2">ZIP Code</label>
+                <input
+                  type="text"
+                  id="zipCode"
+                  value={formData.zipCode}
+                  onChange={(e) => onChange('zipCode', e.target.value.replace(/[^0-9]/g, '').slice(0, 5))}
+                  maxLength={5}
+                  className="w-full p-2 border themed-border rounded themed-bg-primary themed-text-primary focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="12345"
+                />
+              </div>
             </div>
             
             <p className="text-sm themed-text-tertiary mb-6">
-              You'll be directed here, you'll be set.
-              We use this info for alerts that match your exact location.
+              We use this information to provide alerts specific to your location
+              and to determine appropriate emergency resources.
             </p>
             
             <div className="flex justify-between">
@@ -134,9 +184,10 @@ const LocationStep = ({ formData, onChange, onNext, onBack }: LocationStepProps)
               </button>
               <button
                 type="submit"
+                disabled={weatherLoading}
                 className="themed-accent px-6 py-2 rounded-md transition-colors"
               >
-                Next
+                {weatherLoading ? 'Fetching weather...' : 'Next'}
               </button>
             </div>
           </form>
