@@ -1,3 +1,62 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities; 
+@tailwind utilities;
+
+@import './themes.css';
+
+body {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Global themed elements */
+.themed-bg-primary {
+  background-color: var(--bg-primary);
+}
+
+.themed-bg-secondary {
+  background-color: var(--bg-secondary);
+}
+
+.themed-bg-tertiary {
+  background-color: var(--bg-tertiary);
+}
+
+.themed-text-primary {
+  color: var(--text-primary);
+}
+
+.themed-text-secondary {
+  color: var(--text-secondary);
+}
+
+.themed-text-tertiary {
+  color: var(--text-tertiary);
+}
+
+.themed-border {
+  border-color: var(--border-color);
+}
+
+.themed-accent {
+  background-color: var(--accent-primary);
+  color: white;
+}
+
+.themed-accent:hover {
+  background-color: var(--accent-hover);
+}
+
+.themed-accent-secondary {
+  background-color: var(--accent-secondary);
+}
+
+/* High contrast specific overrides */
+.theme-high-contrast .themed-accent {
+  color: black;
+}
+
+.themed-shadow {
+  box-shadow: 0 4px 6px var(--shadow-color);
+} 

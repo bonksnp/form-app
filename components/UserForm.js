@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import supabase from '../lib/supabase'
+import { getWeatherByZipCode } from '../lib/weatherApi'
 
 export default function UserForm() {
   const [formData, setFormData] = useState({
@@ -42,6 +43,9 @@ export default function UserForm() {
     }
 
     try {
+      // Fetch weather data
+      const weatherData = await getWeatherByZipCode(formData.zipcode)
+
       const { data, error } = await supabase
         .from('form_submissions')
         .insert([{ 
@@ -49,7 +53,14 @@ export default function UserForm() {
           email: formData.email, 
           phone_number: formData.phoneNumber,
           mobility: formData.mobility,
-          zipcode: formData.zipcode
+          zipcode: formData.zipcode,
+          // Include weather data
+          temperature: weatherData.temperature,
+          humidity: weatherData.humidity,
+          weather_condition: weatherData.weather_condition,
+          weather_description: weatherData.weather_description,
+          wind_speed: weatherData.wind_speed,
+          weather_timestamp: weatherData.timestamp
         }])
 
       if (error) throw error
@@ -119,7 +130,7 @@ export default function UserForm() {
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border rounded-md"
-            placeholder="Enter your phone number"
+            placeholder="Please enter a number where you can be reached"
           />
         </div>
 
